@@ -26,7 +26,7 @@
   // ],
   "d1_databases": [
     {
-      "binding": "counterd1",
+      "binding": "DB",
       "database_name": "counterd1",
       "database_id": "28b9bb85-ad44-41dd-afc2-435c84478949",
       "remote": true

@@ -19,6 +19,7 @@ import {
   Patron,
   EtablissementRow,
   RapportRow,
+  EmployeRow,
 } from "./db";
 
 export type ENV = Partial<CloudflareBindings>;
@@ -373,4 +374,21 @@ export const RapportsTable = (env: ENV) => {
 
   (async () => await rapports.createTable())();
   return rapports;
+};
+
+export const EmployesTable = (env: ENV) => {
+  const employes = db(env).createUUIDModel<EmployeRow>("employes", {
+    id: "TEXT PRIMARY KEY",
+    etablissement_id: "TEXT NOT NULL",
+    nom: "TEXT NOT NULL",
+    telephone: "TEXT NOT NULL",
+    password_hash: "TEXT NOT NULL",
+    password_salt: "TEXT NOT NULL",
+    role: "TEXT NOT NULL",
+    password_updated_at: "TEXT NOT NULL",
+    created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
+  });
+
+  (async () => await employes.createTable())();
+  return employes;
 };

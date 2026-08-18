@@ -306,3 +306,15 @@ export type RapportRow = {
   ecart: number | null;
   synced_at: string;
 };
+
+export type EmployeRow = {
+  id: string;
+  etablissement_id: string;
+  nom: string;
+  telephone: string;
+  password_hash: string;
+  password_salt: string;
+  role: "gerant" | "serveur" | "caissier";
+  password_updated_at: string;
+  created_at: string;
+};
