@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "serveur",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-22",
+  // "compatibility_flags": [
+  //   "nodejs_compat"
+  // ],
+  // Placeholder pour le typage de CloudflareBindings ; la vraie valeur vient de
+  // `wrangler secret put JWT_SECRET` (prod) ou `.dev.vars` (dev, gitignored) — les deux
+  // ont priorité sur cette valeur au runtime.
+  "vars": {
+    "JWT_SECRET": "dev-placeholder-change-me"
+  },
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "MY_KV_NAMESPACE",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  //   }
+  // ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-database",
+      "database_id": "d0be1a69-731b-4b2a-90f2-1f8a8adc501a"
+    }
+  ],
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
+}
