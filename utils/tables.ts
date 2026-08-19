@@ -20,6 +20,7 @@ import {
   EtablissementRow,
   RapportRow,
   EmployeRow,
+  PatronPushTokenRow,
 } from "./db";
 
 export type ENV = Partial<CloudflareBindings>;
@@ -391,4 +392,17 @@ export const EmployesTable = (env: ENV) => {
 
   (async () => await employes.createTable())();
   return employes;
+};
+
+export const PatronPushTokensTable = (env: ENV) => {
+  const tokens = db(env).createUUIDModel<PatronPushTokenRow>("patron_push_tokens", {
+    id: "TEXT PRIMARY KEY",
+    patron_id: "TEXT NOT NULL",
+    token: "TEXT NOT NULL UNIQUE",
+    platform: "TEXT NOT NULL",
+    created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
+  });
+
+  (async () => await tokens.createTable())();
+  return tokens;
 };

@@ -31,7 +31,20 @@
       "database_id": "28b9bb85-ad44-41dd-afc2-435c84478949",
       "remote": true
     }
-  ]
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "RAPPORTS_QUEUE",
+        "queue": "rapports-notifications"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "rapports-notifications"
+      }
+    ]
+  }
   // "ai": {
   //   "binding": "AI"
   // },

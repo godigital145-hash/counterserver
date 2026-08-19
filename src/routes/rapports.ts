@@ -18,6 +18,8 @@ app.post("/", deviceAuth, async (c) => {
     synced_at: new Date().toISOString(),
   });
 
+  await c.env.RAPPORTS_QUEUE.send({ etablissementId, sessionCaisseId: b.session_caisse_id });
+
   return c.json({ ok: true });
 });
 

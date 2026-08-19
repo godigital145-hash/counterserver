@@ -318,3 +318,11 @@ export type EmployeRow = {
   password_updated_at: string;
   created_at: string;
 };
+
+export type PatronPushTokenRow = {
+  id: string;
+  patron_id: string;
+  token: string;
+  platform: "ios" | "android";
+  created_at: string;
+};

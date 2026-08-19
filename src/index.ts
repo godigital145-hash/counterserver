@@ -5,6 +5,8 @@ import etablissements from './routes/etablissements'
 import pairing from './routes/pairing'
 import rapports from './routes/rapports'
 import employesDevice from './routes/employesDevice'
+import pushTokens from './routes/pushTokens'
+import { traiterRapportsQueue, RapportQueueMessage } from './queue/rapportsConsumer'
 
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
@@ -19,5 +21,9 @@ app.route('/etablissements', etablissements)
 app.route('/pairing', pairing)
 app.route('/rapports', rapports)
 app.route('/device/employes', employesDevice)
+app.route('/patron/push-tokens', pushTokens)
 
-export default app
+export default {
+  fetch: app.fetch,
+  queue: traiterRapportsQueue,
+} satisfies ExportedHandler<CloudflareBindings, RapportQueueMessage>
