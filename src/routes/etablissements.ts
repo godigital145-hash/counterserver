@@ -3,6 +3,7 @@ import { EtablissementsTable, RapportsTable, EmployesTable } from "../../utils/t
 import { patronAuth } from "../middleware/patronAuth";
 import { genererPairingCode, pairingCodeExpiresAt } from "../lib/pairingCode";
 import { hashPassword } from "../lib/password";
+import { compterAppareils, MAX_APPAREILS } from "../lib/appareils";
 
 const ROLES_EMPLOYE = ["gerant", "serveur", "caissier"] as const;
 type RoleEmploye = (typeof ROLES_EMPLOYE)[number];
@@ -37,7 +38,10 @@ app.post("/", async (c) => {
 
 app.get("/", async (c) => {
   const etabs = await EtablissementsTable(c.env).findAll({ where: { patron_id: c.get("patronId") } });
-  return c.json(etabs);
+  const avecNombreAppareils = await Promise.all(
+    etabs.map(async (etab) => ({ ...etab, nombre_appareils: await compterAppareils(c.env, etab) }))
+  );
+  return c.json(avecNombreAppareils);
 });
 
 app.get("/:id", async (c) => {
@@ -45,7 +49,7 @@ app.get("/:id", async (c) => {
     where: { id: c.req.param("id"), patron_id: c.get("patronId") },
   });
   if (!etab) return c.json({ error: "not found" }, 404);
-  return c.json(etab);
+  return c.json({ ...etab, nombre_appareils: await compterAppareils(c.env, etab) });
 });
 
 app.post("/:id/pairing-code", async (c) => {
@@ -53,13 +57,15 @@ app.post("/:id/pairing-code", async (c) => {
   const etab = await etablissements.findOne({ where: { id: c.req.param("id"), patron_id: c.get("patronId") } });
   if (!etab) return c.json({ error: "not found" }, 404);
 
+  if ((await compterAppareils(c.env, etab)) >= MAX_APPAREILS) {
+    return c.json({ error: `Nombre maximum de ${MAX_APPAREILS} appareils déjà atteint pour cet établissement` }, 400);
+  }
+
   const pairing_code = genererPairingCode();
   const pairing_code_expires_at = pairingCodeExpiresAt();
   await etablissements.update(etab.id, {
     pairing_code,
     pairing_code_expires_at,
-    device_token_hash: null,
-    paired_at: null,
   });
 
   return c.json({ pairing_code, pairing_code_expires_at });

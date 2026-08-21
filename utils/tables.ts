@@ -18,6 +18,7 @@ import {
   ErrorLog,
   Patron,
   EtablissementRow,
+  EtablissementDeviceRow,
   RapportRow,
   EmployeRow,
   PatronPushTokenRow,
@@ -346,6 +347,19 @@ export const EtablissementsTable = (env: ENV) => {
 
   (async () => await etablissements.createTable())();
   return etablissements;
+};
+
+export const EtablissementDevicesTable = (env: ENV) => {
+  const appareils = db(env).createUUIDModel<EtablissementDeviceRow>("etablissement_devices", {
+    id: "TEXT PRIMARY KEY",
+    etablissement_id: "TEXT NOT NULL",
+    device_token_hash: "TEXT NOT NULL",
+    paired_at: "TEXT NOT NULL",
+    created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
+  });
+
+  (async () => await appareils.createTable())();
+  return appareils;
 };
 
 export const RapportsTable = (env: ENV) => {

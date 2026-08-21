@@ -285,6 +285,14 @@ export type EtablissementRow = {
   created_at: string;
 };
 
+export type EtablissementDeviceRow = {
+  id: string;
+  etablissement_id: string;
+  device_token_hash: string;
+  paired_at: string;
+  created_at: string;
+};
+
 export type RapportRow = {
   id: string; // `${etablissement_id}_${session_caisse_id}` — clé synthétique pour upsert idempotent
   etablissement_id: string;
