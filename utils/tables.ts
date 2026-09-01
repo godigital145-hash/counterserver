@@ -21,6 +21,8 @@ import {
   EtablissementDeviceRow,
   RapportRow,
   EmployeRow,
+  CategorieRow,
+  ProduitRow,
   PatronPushTokenRow,
 } from "./db";
 
@@ -406,6 +408,34 @@ export const EmployesTable = (env: ENV) => {
 
   (async () => await employes.createTable())();
   return employes;
+};
+
+export const CategoriesTable = (env: ENV) => {
+  const categories = db(env).createUUIDModel<CategorieRow>("categories", {
+    id: "TEXT PRIMARY KEY",
+    etablissement_id: "TEXT NOT NULL",
+    nom: "TEXT NOT NULL",
+    type: "TEXT NOT NULL",
+    created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
+  });
+
+  (async () => await categories.createTable())();
+  return categories;
+};
+
+export const ProduitsTable = (env: ENV) => {
+  const produits = db(env).createUUIDModel<ProduitRow>("produits", {
+    id: "TEXT PRIMARY KEY",
+    etablissement_id: "TEXT NOT NULL",
+    categorie_id: "TEXT NOT NULL",
+    nom: "TEXT NOT NULL",
+    prix: "REAL NOT NULL",
+    quantite_par_lot: "INTEGER",
+    created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
+  });
+
+  (async () => await produits.createTable())();
+  return produits;
 };
 
 export const PatronPushTokensTable = (env: ENV) => {

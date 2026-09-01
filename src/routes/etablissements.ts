@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { EtablissementsTable, RapportsTable, EmployesTable } from "../../utils/tables";
+import { EtablissementsTable, RapportsTable, EmployesTable, CategoriesTable, ProduitsTable } from "../../utils/tables";
 import { patronAuth } from "../middleware/patronAuth";
 import { genererPairingCode, pairingCodeExpiresAt } from "../lib/pairingCode";
 import { hashPassword } from "../lib/password";
@@ -7,6 +7,9 @@ import { compterAppareils, MAX_APPAREILS } from "../lib/appareils";
 
 const ROLES_EMPLOYE = ["gerant", "serveur", "caissier"] as const;
 type RoleEmploye = (typeof ROLES_EMPLOYE)[number];
+
+const TYPES_ACTIVITE = ["bar", "restaurant"] as const;
+type TypeActivite = (typeof TYPES_ACTIVITE)[number];
 
 function sansSecret<T extends { password_hash: string; password_salt: string }>(
   employe: T
@@ -174,6 +177,155 @@ app.delete("/:id/employes/:employeId", async (c) => {
   if (!employe) return c.json({ error: "not found" }, 404);
 
   await employes.delete(employe.id);
+  return c.json({ ok: true });
+});
+
+app.post("/:id/categories", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const { nom, type } = await c.req.json<{ nom: string; type: TypeActivite }>();
+  if (!nom || !TYPES_ACTIVITE.includes(type)) {
+    return c.json({ error: "nom et type (bar|restaurant) requis" }, 400);
+  }
+
+  const categorie = await CategoriesTable(c.env).create({ etablissement_id: etab.id, nom, type });
+  return c.json(categorie, 201);
+});
+
+app.get("/:id/categories", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const categories = await CategoriesTable(c.env).findAll({ where: { etablissement_id: etab.id } });
+  return c.json(categories);
+});
+
+app.patch("/:id/categories/:categorieId", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const categories = CategoriesTable(c.env);
+  const categorie = await categories.findOne({ where: { id: c.req.param("categorieId"), etablissement_id: etab.id } });
+  if (!categorie) return c.json({ error: "not found" }, 404);
+
+  const body = await c.req.json<{ nom?: string; type?: TypeActivite }>();
+  if (body.type && !TYPES_ACTIVITE.includes(body.type)) {
+    return c.json({ error: "type invalide" }, 400);
+  }
+
+  const changements: Partial<typeof categorie> = {};
+  if (body.nom) changements.nom = body.nom;
+  if (body.type) changements.type = body.type;
+
+  const mis_a_jour = await categories.update(categorie.id, changements);
+  if (!mis_a_jour) return c.json({ error: "not found" }, 404);
+  return c.json(mis_a_jour);
+});
+
+app.delete("/:id/categories/:categorieId", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const categories = CategoriesTable(c.env);
+  const categorie = await categories.findOne({ where: { id: c.req.param("categorieId"), etablissement_id: etab.id } });
+  if (!categorie) return c.json({ error: "not found" }, 404);
+
+  const produits = ProduitsTable(c.env);
+  const produitsDeLaCategorie = await produits.findAll({ where: { categorie_id: categorie.id } });
+  for (const produit of produitsDeLaCategorie) {
+    await produits.delete(produit.id);
+  }
+
+  await categories.delete(categorie.id);
+  return c.json({ ok: true });
+});
+
+app.post("/:id/produits", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const { nom, prix, quantite_par_lot, categorie_id } = await c.req.json<{
+    nom: string;
+    prix: number;
+    quantite_par_lot?: number | null;
+    categorie_id: string;
+  }>();
+  if (!nom || typeof prix !== "number" || prix <= 0 || !categorie_id) {
+    return c.json({ error: "nom, prix et categorie_id requis" }, 400);
+  }
+
+  const categorie = await CategoriesTable(c.env).findOne({ where: { id: categorie_id, etablissement_id: etab.id } });
+  if (!categorie) return c.json({ error: "categorie_id invalide" }, 400);
+
+  const produit = await ProduitsTable(c.env).create({
+    etablissement_id: etab.id,
+    categorie_id,
+    nom,
+    prix,
+    quantite_par_lot: quantite_par_lot ?? null,
+  });
+  return c.json(produit, 201);
+});
+
+app.get("/:id/produits", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const produits = await ProduitsTable(c.env).findAll({ where: { etablissement_id: etab.id } });
+  return c.json(produits);
+});
+
+app.patch("/:id/produits/:produitId", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const produits = ProduitsTable(c.env);
+  const produit = await produits.findOne({ where: { id: c.req.param("produitId"), etablissement_id: etab.id } });
+  if (!produit) return c.json({ error: "not found" }, 404);
+
+  const body = await c.req.json<{ nom?: string; prix?: number; quantite_par_lot?: number | null; categorie_id?: string }>();
+  if (body.categorie_id) {
+    const categorie = await CategoriesTable(c.env).findOne({ where: { id: body.categorie_id, etablissement_id: etab.id } });
+    if (!categorie) return c.json({ error: "categorie_id invalide" }, 400);
+  }
+
+  const changements: Partial<typeof produit> = {};
+  if (body.nom) changements.nom = body.nom;
+  if (typeof body.prix === "number" && body.prix > 0) changements.prix = body.prix;
+  if (body.quantite_par_lot !== undefined) changements.quantite_par_lot = body.quantite_par_lot;
+  if (body.categorie_id) changements.categorie_id = body.categorie_id;
+
+  const mis_a_jour = await produits.update(produit.id, changements);
+  if (!mis_a_jour) return c.json({ error: "not found" }, 404);
+  return c.json(mis_a_jour);
+});
+
+app.delete("/:id/produits/:produitId", async (c) => {
+  const etab = await EtablissementsTable(c.env).findOne({
+    where: { id: c.req.param("id"), patron_id: c.get("patronId") },
+  });
+  if (!etab) return c.json({ error: "not found" }, 404);
+
+  const produits = ProduitsTable(c.env);
+  const produit = await produits.findOne({ where: { id: c.req.param("produitId"), etablissement_id: etab.id } });
+  if (!produit) return c.json({ error: "not found" }, 404);
+
+  await produits.delete(produit.id);
   return c.json({ ok: true });
 });
 

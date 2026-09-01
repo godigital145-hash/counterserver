@@ -327,6 +327,24 @@ export type EmployeRow = {
   created_at: string;
 };
 
+export type CategorieRow = {
+  id: string;
+  etablissement_id: string;
+  nom: string;
+  type: "bar" | "restaurant";
+  created_at: string;
+};
+
+export type ProduitRow = {
+  id: string;
+  etablissement_id: string;
+  categorie_id: string;
+  nom: string;
+  prix: number;
+  quantite_par_lot: number | null;
+  created_at: string;
+};
+
 export type PatronPushTokenRow = {
   id: string;
   patron_id: string;

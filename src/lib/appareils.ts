@@ -7,3 +7,6 @@ export async function compterAppareils(env: ENV, etab: EtablissementRow): Promis
   const appareils = await EtablissementDevicesTable(env).findAll({ where: { etablissement_id: etab.id } });
   return appareils.length + (etab.device_token_hash ? 1 : 0);
 }
+
+
+JXB3M7Z8
