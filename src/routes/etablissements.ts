@@ -8,6 +8,8 @@ import { compterAppareils, MAX_APPAREILS } from "../lib/appareils";
 const ROLES_EMPLOYE = ["gerant", "serveur", "caissier"] as const;
 type RoleEmploye = (typeof ROLES_EMPLOYE)[number];
 
+const MAX_EMPLOYES = 2;
+
 const TYPES_ACTIVITE = ["bar", "restaurant"] as const;
 type TypeActivite = (typeof TYPES_ACTIVITE)[number];
 
@@ -104,7 +106,11 @@ app.post("/:id/employes", async (c) => {
   }
 
   const employes = EmployesTable(c.env);
-  const existant = await employes.findOne({ where: { etablissement_id: etab.id, telephone } });
+  const employesExistants = await employes.findAll({ where: { etablissement_id: etab.id } });
+  if (employesExistants.length >= MAX_EMPLOYES) {
+    return c.json({ error: `Nombre maximum de ${MAX_EMPLOYES} employés déjà atteint pour cet établissement` }, 400);
+  }
+  const existant = employesExistants.find((e) => e.telephone === telephone);
   if (existant) return c.json({ error: "Ce numéro de téléphone est déjà utilisé dans cet établissement" }, 400);
 
   const { hash, salt } = await hashPassword(password);
