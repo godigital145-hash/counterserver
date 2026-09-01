@@ -289,6 +289,8 @@ export type EtablissementDeviceRow = {
   id: string;
   etablissement_id: string;
   device_token_hash: string;
+  /** Identifiant persistant généré côté appareil, stable entre deux appariements successifs du même appareil physique. */
+  device_identifiant: string | null;
   paired_at: string;
   created_at: string;
 };

@@ -356,11 +356,19 @@ export const EtablissementDevicesTable = (env: ENV) => {
     id: "TEXT PRIMARY KEY",
     etablissement_id: "TEXT NOT NULL",
     device_token_hash: "TEXT NOT NULL",
+    device_identifiant: "TEXT NULL",
     paired_at: "TEXT NOT NULL",
     created_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
   });
 
-  (async () => await appareils.createTable())();
+  (async () => {
+    await appareils.createTable();
+    try {
+      await appareils.orm.run("ALTER TABLE etablissement_devices ADD COLUMN device_identifiant TEXT");
+    } catch {
+      // colonne déjà présente
+    }
+  })();
   return appareils;
 };
 

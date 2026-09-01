@@ -6,6 +6,7 @@ import pairing from './routes/pairing'
 import rapports from './routes/rapports'
 import employesDevice from './routes/employesDevice'
 import produitsDevice from './routes/produitsDevice'
+import deviceUnpair from './routes/deviceUnpair'
 import pushTokens from './routes/pushTokens'
 import { traiterRapportsQueue, RapportQueueMessage } from './queue/rapportsConsumer'
 
@@ -23,6 +24,7 @@ app.route('/pairing', pairing)
 app.route('/rapports', rapports)
 app.route('/device/employes', employesDevice)
 app.route('/device/produits', produitsDevice)
+app.route('/device/unpair', deviceUnpair)
 app.route('/patron/push-tokens', pushTokens)
 
 export default {
