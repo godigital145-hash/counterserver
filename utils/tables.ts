@@ -389,6 +389,7 @@ export const RapportsTable = (env: ENV) => {
     montant_commandes: "REAL NOT NULL",
     quantite_perdue: "REAL NOT NULL",
     nombre_ecarts_inventaire: "INTEGER NOT NULL",
+    details: "TEXT NULL",
     session_date_ouverture: "TEXT NOT NULL",
     session_date_fermeture: "TEXT NULL",
     montant_ouverture: "REAL NOT NULL",
@@ -397,7 +398,14 @@ export const RapportsTable = (env: ENV) => {
     synced_at: "DATETIME DEFAULT CURRENT_TIMESTAMP",
   });
 
-  (async () => await rapports.createTable())();
+  (async () => {
+    await rapports.createTable();
+    try {
+      await rapports.orm.run("ALTER TABLE rapports ADD COLUMN details TEXT");
+    } catch {
+      // colonne déjà présente
+    }
+  })();
   return rapports;
 };
 
